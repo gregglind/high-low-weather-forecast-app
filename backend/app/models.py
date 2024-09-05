@@ -7,14 +7,16 @@ from sqlmodel import Field, Relationship, SQLModel
 # What is stored in the db
 # forecasts are lat long ints
 # see:  https://api.weather.gov/gridpoints/TOP/32,81/forecast/hourly
-class WeatherItem(SQLModel):
-    startTime: datetime = Field()
-    lat: int = Field()
-    long: int = Field()
+
+
+class HourlyWeather(SQLModel, table=True):
+    startTime: datetime = Field(primary_key=True)
+    lat: int = Field(primary_key=True)
+    long: int = Field(primary_key=True)
     temperature: float = Field()
 
 
-class WeatherResponse(SQLModel):
+class HourlyWeatherResponse(SQLModel):
     date: date_type = Field()
     hour: int = Field()
     lat: float = Field()

@@ -1,25 +1,45 @@
 import uuid
-from datetime import date, datetime
+from datetime import date, datetime, time, timedelta
 from typing import Any
 from pydantic import conint
 
 from fastapi import APIRouter, HTTPException
-from sqlmodel import func, select
+from sqlmodel import func, select, col
 
-from app.api.deps import CurrentUser, SessionDep
+from app.api.deps import SessionDep
 
-from app.models import Item, ItemCreate, ItemPublic, ItemsPublic, ItemUpdate, Message
-from app.models import WeatherItem, WeatherResponse
+from app.models import HourlyWeather, HourlyWeatherResponse
 
 router = APIRouter()
 
 
 @router.get("/{lat}/{long}/{date}/{hour}")
-def read_forecasts(
+def max_min_temp(
     session: SessionDep,
     lat: float = 37.2,
     long: float = 28.1,
     date: date = "2024-07-13",
     hour: int = 15,
-) -> WeatherResponse:
-    return dict(lat=lat, long=long, date=date, hour=hour, high=13, low=13)
+) -> HourlyWeatherResponse:
+    """Returns the max and min forecast at the lat long in the next 72 hours."""
+
+    # TODO, sqlmodel is pretty frustating here.  Getting to sqlAlchemy would be much better, but outside the scope of this assignment
+
+    after = datetime.combine(date, time(hour, 0, 0))
+    before = after + timedelta(hours=72)
+
+    def augment(statement):
+        return (
+            statement.where(HourlyWeather.lat == lat)
+            .where(HourlyWeather.long == long)
+            .where(HourlyWeather.startTime >= after)
+            .where(HourlyWeather.startTime <= before)
+        )
+
+    max_stmt = augment(select(func.max(col(HourlyWeather.temperature))))
+    min_stmt = augment(select(func.min(col(HourlyWeather.temperature))))
+
+    max_temp = session.exec(max_stmt).one()
+    min_temp = session.exec(min_stmt).one()
+
+    return dict(lat=lat, long=long, date=date, hour=hour, high=max_temp, low=min_temp)
