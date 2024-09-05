@@ -1,7 +1,26 @@
 import uuid
-
+from datetime import date as date_type, datetime
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
+
+
+# What is stored in the db
+# forecasts are lat long ints
+# see:  https://api.weather.gov/gridpoints/TOP/32,81/forecast/hourly
+class WeatherItem(SQLModel):
+    startTime: datetime = Field()
+    lat: int = Field()
+    long: int = Field()
+    temperature: float = Field()
+
+
+class WeatherResponse(SQLModel):
+    date: date_type = Field()
+    hour: int = Field()
+    lat: float = Field()
+    long: float = Field()
+    high: float = Field()
+    low: float = Field()
 
 
 # Shared properties
