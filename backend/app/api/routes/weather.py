@@ -40,4 +40,10 @@ def max_min_temp(
     max_temp = session.exec(max_stmt).one()
     min_temp = session.exec(min_stmt).one()
 
+    if max_temp is None or min_temp is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Not Found:  High and Low Temps not found for this combination of parameters.",
+        )
+
     return dict(lat=lat, long=long, date=date, hour=hour, high=max_temp, low=min_temp)

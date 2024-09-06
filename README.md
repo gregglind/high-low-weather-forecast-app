@@ -8,9 +8,10 @@
 
 ## Important urls:
 
-- API access: [http://localhost/api/v1/weather](http://localhost/api/v1/weather)
+- Weather data [PG Adminer](http://localhost:8080/?pgsql=db&username=postgres&db=app&ns=public&select=hourlyweather)
 - API documentation
 [http://localhost/docs](http://localhost/docs)
+- API example: [`http://localhost/api/v1/weather/39/-93/2024-09-07/15`](http://localhost/api/v1/weather/39/-93/2024-09-07/15)
 - DB UI (Adminer) [http://localhost:8080/](http://localhost:8080/)
 - DB (PG) [http://localhost:15432/](http://localhost:15432/)
 
@@ -76,6 +77,9 @@ Example usage:  [`http://localhost/api/v1/weather/37/-93/2024-09-05/15`](http://
 
 See full api at [http://localhost/docs](http://localhost/docs)
 
+Code:
+* [./backend/app/routes/weather.py](./backend/app/routes/weather.py)
+* [./backend/app/routes/weatherUtils.py](./backend/app/routes/weatherUtils.py)
 
 6. The application must contain an appropriate Dockerfile and otherresources to containerize the
 application
@@ -137,7 +141,7 @@ Migrations: this template supports Alembic.  For this toy app it was simpler to 
 
 ### Batch Process
 
-Decision:  Batch process (weather retrieval) is handled in server app [`./backend/app/main.py`]. 
+Decision:  Batch process (weather retrieval) is handled in server app [`./backend/app/main.py`](./backend/app/main.py)
 
 Good (enough):
 - re-uses the existing model code.
