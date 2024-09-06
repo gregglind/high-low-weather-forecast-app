@@ -116,5 +116,9 @@ class Settings(BaseSettings):
 
         return self
 
+    # PROJECT SPECIFIC, from .env
+    LATITUDE_INT: int = 39
+    LONGITUDE_INT: int = -93
+    WEATHER_FETCH_INTERVAL_MINUTES: int = 60
 
 settings = Settings()  # type: ignore

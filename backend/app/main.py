@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+import datetime as dt
 
 import sentry_sdk
 from fastapi import FastAPI
@@ -8,17 +9,34 @@ from starlette.middleware.cors import CORSMiddleware
 from app.api.main import api_router
 from app.core.config import settings
 
+# batch processes
+from apscheduler.schedulers.background import BackgroundScheduler
+from app.api.routes.weatherUtils import update_forecasts
+from app.api.deps import get_db
+
 def custom_generate_unique_id(route: APIRoute) -> str:
     return f"{route.tags[0]}-{route.name}"
-
 
 if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
     sentry_sdk.init(dsn=str(settings.SENTRY_DSN), enable_tracing=True)
 
 
+def job_weather_fetch():
+    print(f"BACKGROUND: fetching weather {dt.datetime.now()}")
+    # get_db is a generator of sessions.  `next` gives as a specific session
+    with next(get_db()) as session:
+        update_forecasts(session, settings.LATITUDE_INT, settings.LONGITUDE_INT)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # "Startup"
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(
+        job_weather_fetch, "interval", minutes=settings.WEATHER_FETCH_INTERVAL_MINUTES
+    )
+    scheduler.start()
+
     yield
     # "Cleanup"
 
