@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 import datetime as dt
 
+import asyncio
 import sentry_sdk
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
@@ -25,13 +26,19 @@ def job_weather_fetch():
     print(f"BACKGROUND: fetching weather {dt.datetime.now()}")
     # get_db is a generator of sessions.  `next` gives as a specific session
     with next(get_db()) as session:
-        update_forecasts(session, settings.LATITUDE_INT, settings.LONGITUDE_INT)
+        try:
+            update_forecasts(session, settings.LATITUDE_INT, settings.LONGITUDE_INT)
+        except:  # TODO, yes this is terrible!  Handle re-insertion, etc.
+            print("WEATHER FETCH JOB ERROR: probably duplicate keys")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # "Startup"
     scheduler = BackgroundScheduler()
+    # once
+    job_weather_fetch()
+    # scheduled
     scheduler.add_job(
         job_weather_fetch, "interval", minutes=settings.WEATHER_FETCH_INTERVAL_MINUTES
     )

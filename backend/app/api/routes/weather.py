@@ -25,15 +25,13 @@ def max_min_temp(
 
     # TODO, sqlmodel is pretty frustating here.  Getting to sqlAlchemy would be much better, but outside the scope of this assignment
 
-    after = datetime.combine(date, time(hour, 0, 0))
-    before = after + timedelta(hours=72)
+    starttime = datetime.combine(date, time(hour, 0, 0))
 
     def augment(statement):
         return (
             statement.where(HourlyWeather.lat == lat)
             .where(HourlyWeather.long == long)
-            .where(HourlyWeather.startTime >= after)
-            .where(HourlyWeather.startTime <= before)
+            .where(HourlyWeather.startTime == starttime)
         )
 
     max_stmt = augment(select(func.max(col(HourlyWeather.temperature))))
